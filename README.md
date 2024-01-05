@@ -19,6 +19,8 @@ Zamoroc edits:
 | - | The minimum angle from your velocity to gain speed  |
 | \| | The optimal angle from your velocity to gain speed |
 
+Example: https://www.youtube.com/watch?v=fJPEFj5maX4&lc=UgzrLMxAesjioARxHNh4AaABAg
+
 # How to get it to work
 This is how I did it but there may be different ways, if I find a better way I'll put it here.
 
