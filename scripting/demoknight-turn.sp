@@ -25,6 +25,7 @@ Handle sync;
 bool toggle[MAXPLAYERS + 1];
 bool extra[MAXPLAYERS + 1];
 bool speedometer[MAXPLAYERS + 1];
+bool target[MAXPLAYERS + 1];
 
 float lastspeed[MAXPLAYERS + 1];
 float lastchangedspeed[MAXPLAYERS + 1];
@@ -35,11 +36,15 @@ public void OnPluginStart()
     RegConsoleCmd("chargetoggle", chargetoggle);
     RegConsoleCmd("extratoggle", extratoggle);
     RegConsoleCmd("speedtoggle", speedtoggle);
+    RegConsoleCmd("targettoggle", targettoggle);
 }
 
 Action chargetoggle(int client, int args)
 {
     toggle[client] = !toggle[client];
+    extra[client] = toggle[client];
+    speedometer[client] = toggle[client];
+    target[client] = toggle[client];
     return Plugin_Continue;
 }
 
@@ -55,15 +60,33 @@ Action speedtoggle(int client, int args)
     return Plugin_Continue;
 }
 
+Action targettoggle(int client, int args)
+{
+    target[client] = !target[client];
+    return Plugin_Continue;
+}
+
 public void OnClientPutInServer(int client)
 {
-    toggle[client] = false;
+    toggle[client] = true;
+    extra[client] = true;
+    speedometer[client] = true;
+    target[client] = true;
 }
 
 int abs(int x)
 {
     int mask = x >> 32 - 1;
     return (x + mask) ^ mask;
+}
+
+float threesixtywraparound(float difference)
+{
+    if (difference <= 0.00)
+        difference += 360.00;
+    else if (difference >= 360.00)
+        difference -= 360.00;
+    return difference;
 }
 
 public void OnGameFrame()
@@ -93,15 +116,15 @@ public void OnGameFrame()
                 else if (difference >= 180.00)
                     difference -= 360.00;
 
-                int angle = RoundFloat(difference);
+                int angle = RoundFloat(difference); // Angle turned away from velocity, spans -180 to 180
 
                 GetEntPropVector(i, Prop_Data, "m_vecAbsVelocity", m_vecAbsVelocity);
                 m_vecAbsVelocity[2] = 0.00;
                 float speed = GetVectorLength(m_vecAbsVelocity);
 
                 // https://steamcommunity.com/sharedfiles/filedetails/?id=184184420
-                int optimal = RoundFloat(ArcCosine((750.00 - FloatAbs(0.0152 * 7500.00)) / FloatAbs(speed)) * (180 / M_PI));
-                int minimum = RoundFloat(ArcCosine(750.00 / FloatAbs(speed)) * (180 / M_PI));
+                int optimal = RoundFloat(ArcCosine((750.00 - FloatAbs(0.0152 * 7500.00)) / FloatAbs(speed)) * (180 / M_PI)); // Spans ~30 to ~70
+                int minimum = RoundFloat(ArcCosine(750.00 / FloatAbs(speed)) * (180 / M_PI)); // Spans ~0 to ~70
                 if (!TF2_IsPlayerInCondition(i, TFCond_Charging) || abs(angle) > optimal + 20 || abs(angle) < minimum - 10 || (speed - lastspeed[i] < 10.00 && GetGameTime() - lastchangedspeed[i] >= 0.1))
                     SetHudTextParams(-1.0, 0.4, 1.00, 255, 0, 0, 255, 0, 6.0, 0.0, 0.0);  // red
                 else if (abs(angle) < optimal - 10 || abs(angle) > optimal + 10)
@@ -113,9 +136,36 @@ public void OnGameFrame()
 
                 char extrabuffer[256];
                 char speedbuffer[256];
-                Format(extrabuffer, sizeof(extrabuffer), "\nmin: %i, max: %i", minimum, optimal);
+                char targetbuffer[256];
+
+                Format(extrabuffer, sizeof(extrabuffer), "\nmin: %i, optimal: %i", speed < 750 ? 0 : minimum, speed < 750 ? 0 : optimal);
                 Format(speedbuffer, sizeof(speedbuffer), "\nspeed: %i", RoundFloat(speed));
-                ShowSyncHudText(i, sync, "%i%s%s", speed == 0 ? 0 : angle, extra[i] ? extrabuffer : "", speedometer[i] ? speedbuffer : "");
+                // Putting 135 spaces into it (hardcoded so change this too if you want to change the charstodisplay)
+                Format(targetbuffer, sizeof(targetbuffer), "                                                                                                                                       \n");
+                int charstodisplay = 135
+                float mappingratio = (charstodisplay-1) / 360.00 // Converts the 360 degree angles to a screen width of chars (~135 letters on my screen) to be used as indexes
+                float threesixtydifference = difference + 180.00 // Spans 0 to 360
+                if (speed > 0)
+                {
+                    int angleindex = RoundFloat(threesixtydifference * mappingratio)
+                    int negminindex = RoundFloat(threesixtywraparound(threesixtydifference - minimum) * mappingratio)
+                    int posminindex = RoundFloat(threesixtywraparound(threesixtydifference + minimum) * mappingratio)
+                    int negoptimalindex = RoundFloat(threesixtywraparound(threesixtydifference - optimal) * mappingratio)
+                    int posoptimalindex = RoundFloat(threesixtywraparound(threesixtydifference + optimal) * mappingratio)
+                    if (angleindex >= 0 && angleindex < charstodisplay)
+                        targetbuffer[angleindex] = 'v'
+                    if (negminindex >= 0 && negminindex < charstodisplay)
+                        targetbuffer[negminindex] = '-';
+                    if (posminindex >= 0 && posminindex < charstodisplay)
+                        targetbuffer[posminindex] = '-'
+                    if (negoptimalindex >= 0 && negoptimalindex < charstodisplay)
+                        targetbuffer[negoptimalindex] = '|'
+                    if (posoptimalindex >= 0 && posoptimalindex < charstodisplay)
+                        targetbuffer[posoptimalindex] = '|'
+                }
+
+                // Added extra line with the targets to the top
+                ShowSyncHudText(i, sync, "%s%i%s%s", target[i] ? targetbuffer : "", speed == 0 ? 0 : angle, extra[i] ? extrabuffer : "", speedometer[i] ? speedbuffer : "");
 
                 if (speed - lastspeed[i] > 0.5 || lastspeed[i] - speed > 0.5)
                 {
