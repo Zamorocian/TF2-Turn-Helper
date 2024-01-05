@@ -12,9 +12,20 @@ The code isn't great, because I don't really understand game maths to an adequat
 
 Made for SolarLight.
 
-Zamoroc edit:
+Zamoroc edits:
+| Icon  | Description |
+| ------------- | ------------- |
+| v | Your velocity  |
+| - | The minimum angle from your velocity to gain speed  |
+| \| | The optimal angle from your velocity to gain speed |
+
 # How to get it to work
 This is how I did it but there may be different ways, if I find a better way I'll put it here.
-Make a dedicated TF2 server with metamod and sourcemod, there are videos and guides which walk you through the whole thing. Of course you don't need to portforward or open firewalls if you're practising charging singleplayer. Compile the demoknight-turn.sp file into .smx (there's a compiler in sourcemod or on the sourcemod website), then add the .smx to the plugins folder. After launching the server, it should appear in the Lan section of the server browser in-game.
+
+Make a dedicated TF2 server with metamod and sourcemod, there are videos and guides which walk you through the whole thing. I didn't need to portforward or open firewalls practising in singleplayer.
+
+Compile the demoknight-turn.sp file into .smx (there's a compiler in sourcemod or on the sourcemod website), then add the .smx to the plugins folder.
+
+After launching the server, it should appear in the Lan section of the server browser in-game.
 
 Commands are (just put them in the normal in-game console by themself, it may say not recognised but it's lying) : chargetoggle - all displays on/off, extratoggle - remove the optimal/min values, speedtoggle - remove the speed value, targettoggle - remove the moving targets.
