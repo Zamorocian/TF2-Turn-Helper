@@ -23,6 +23,7 @@
 
 Handle sync;
 bool toggle[MAXPLAYERS + 1];
+bool anglemeter[MAXPLAYERS + 1];
 bool extra[MAXPLAYERS + 1];
 bool speedometer[MAXPLAYERS + 1];
 bool target[MAXPLAYERS + 1];
@@ -34,6 +35,7 @@ public void OnPluginStart()
 {
     sync = CreateHudSynchronizer();
     RegConsoleCmd("chargetoggle", chargetoggle);
+    RegConsoleCmd("angletoggle", angletoggle);
     RegConsoleCmd("extratoggle", extratoggle);
     RegConsoleCmd("speedtoggle", speedtoggle);
     RegConsoleCmd("targettoggle", targettoggle);
@@ -42,9 +44,16 @@ public void OnPluginStart()
 Action chargetoggle(int client, int args)
 {
     toggle[client] = !toggle[client];
+    anglemeter[client] = toggle[client];
     extra[client] = toggle[client];
     speedometer[client] = toggle[client];
     target[client] = toggle[client];
+    return Plugin_Continue;
+}
+
+Action angletoggle(int client, int args)
+{
+    anglemeter[client] = !anglemeter[client];
     return Plugin_Continue;
 }
 
@@ -69,7 +78,8 @@ Action targettoggle(int client, int args)
 public void OnClientPutInServer(int client)
 {
     toggle[client] = true;
-    extra[client] = true;
+    anglemeter[client] = false;
+    extra[client] = false;
     speedometer[client] = true;
     target[client] = true;
 }
@@ -126,22 +136,24 @@ public void OnGameFrame()
                 int optimal = RoundFloat(ArcCosine((750.00 - FloatAbs(0.0152 * 7500.00)) / FloatAbs(speed)) * (180 / M_PI)); // Spans ~30 to ~70
                 int minimum = RoundFloat(ArcCosine(750.00 / FloatAbs(speed)) * (180 / M_PI)); // Spans ~0 to ~70
                 if (!TF2_IsPlayerInCondition(i, TFCond_Charging) || abs(angle) > optimal + 20 || abs(angle) < minimum - 10 || (speed - lastspeed[i] < 10.00 && GetGameTime() - lastchangedspeed[i] >= 0.1))
-                    SetHudTextParams(-1.0, 0.4, 1.00, 255, 0, 0, 255, 0, 6.0, 0.0, 0.0);  // red
+                    SetHudTextParams(-1.0, 0.48, 1.00, 255, 0, 0, 255, 0, 6.0, 0.0, 0.0);  // red
                 else if (abs(angle) < optimal - 10 || abs(angle) > optimal + 10)
-                    SetHudTextParams(-1.0, 0.4, 1.00, 127, 255, 0, 255, 0, 6.0, 0.0, 0.0); // yellow
+                    SetHudTextParams(-1.0, 0.48, 1.00, 127, 255, 0, 255, 0, 6.0, 0.0, 0.0); // yellow
                 else if (abs(angle) < optimal - 5 || abs(angle) > optimal + 5)
-                    SetHudTextParams(-1.0, 0.4, 1.00, 0, 255, 255, 255, 0, 6.0, 0.0, 0.0); // turquoise
+                    SetHudTextParams(-1.0, 0.48, 1.00, 0, 255, 255, 255, 0, 6.0, 0.0, 0.0); // turquoise
                 else
-                    SetHudTextParams(-1.0, 0.4, 1.00, 0, 255, 0, 255, 0, 6.0, 0.0, 0.0); // green
+                    SetHudTextParams(-1.0, 0.48, 1.00, 0, 255, 0, 255, 0, 6.0, 0.0, 0.0); // green
 
+                char anglebuffer[256];
                 char extrabuffer[256];
                 char speedbuffer[256];
                 char targetbuffer[256];
 
+                Format(anglebuffer, sizeof(anglebuffer), "\n%i", speed == 0 ? 0 : angle);
                 Format(extrabuffer, sizeof(extrabuffer), "\nmin: %i, optimal: %i", speed < 750 ? 0 : minimum, speed < 750 ? 0 : optimal);
-                Format(speedbuffer, sizeof(speedbuffer), "\nspeed: %i", RoundFloat(speed));
+                Format(speedbuffer, sizeof(speedbuffer), "\n%i", RoundFloat(speed));
                 // Putting 135 spaces into it (hardcoded so change this too if you want to change the charstodisplay)
-                Format(targetbuffer, sizeof(targetbuffer), "                                                                                                                                       \n");
+                Format(targetbuffer, sizeof(targetbuffer), "                                                                                                                                       ");
                 int charstodisplay = 135
                 float mappingratio = (charstodisplay-1) / 360.00 // Converts the 360 degree angles to a screen width of chars (~135 letters on my screen) to be used as indexes
                 float threesixtydifference = difference + 180.00 // Spans 0 to 360
@@ -164,8 +176,7 @@ public void OnGameFrame()
                         targetbuffer[posoptimalindex] = '|'
                 }
 
-                // Added extra line with the targets to the top
-                ShowSyncHudText(i, sync, "%s%i%s%s", target[i] ? targetbuffer : "", speed == 0 ? 0 : angle, extra[i] ? extrabuffer : "", speedometer[i] ? speedbuffer : "");
+                ShowSyncHudText(i, sync, "%s%s%s%s", target[i] ? targetbuffer : "", speedometer[i] ? speedbuffer : "", anglemeter[i] ? anglebuffer : "", extra[i] ? extrabuffer : "");
 
                 if (speed - lastspeed[i] > 0.5 || lastspeed[i] - speed > 0.5)
                 {
