@@ -30,4 +30,4 @@ Compile the demoknight-turn.sp file into .smx (there's a compiler in sourcemod o
 
 After launching the server, it should appear in the Lan section of the server browser in-game.
 
-Commands are (just put them in the normal in-game console by themself, it may say not recognised but it's lying) : chargetoggle - all displays on/off, angletoggle - the angle from velocity value, extratoggle - the optimal/min values, speedtoggle - the speed value, targettoggle - the moving targets.
+Commands are (just put them in the normal in-game console by themself, it may say not recognised but it's lying) : chargetoggle - all displays on/off, angletoggle - the angle from velocity value, extratoggle - the optimal/min values, speedtoggle - the horizontal speed value, targettoggle - the moving targets.
