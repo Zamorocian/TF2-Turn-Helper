@@ -19,7 +19,7 @@ Zamoroc edits:
 | - | The minimum angle from your velocity to gain speed  |
 | \| | The optimal angle from your velocity to gain speed |
 
-Example: https://www.youtube.com/watch?v=fJPEFj5maX4&lc=UgzrLMxAesjioARxHNh4AaABAg
+Example: [upward last to first trimp (tf2 tide turner)](https://youtu.be/fJPEFj5maX4)
 
 # How to get it to work
 This is how I did it but there may be different ways, if I find a better way I'll put it here.
@@ -30,4 +30,4 @@ Compile the demoknight-turn.sp file into .smx (there's a compiler in sourcemod o
 
 After launching the server, it should appear in the Lan section of the server browser in-game.
 
-Commands are (just put them in the normal in-game console by themself, it may say not recognised but it's lying) : chargetoggle - all displays on/off, extratoggle - remove the optimal/min values, speedtoggle - remove the speed value, targettoggle - remove the moving targets.
+Commands are (just put them in the normal in-game console by themself, it may say not recognised but it's lying) : chargetoggle - all displays on/off, angletoggle - the angle from velocity value, extratoggle - the optimal/min values, speedtoggle - the speed value, targettoggle - the moving targets.
