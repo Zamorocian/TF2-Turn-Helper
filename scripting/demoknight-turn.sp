@@ -28,6 +28,7 @@ bool extra[MAXPLAYERS + 1];
 bool speedometer[MAXPLAYERS + 1];
 bool vspeedometer[MAXPLAYERS + 1];
 bool target[MAXPLAYERS + 1];
+bool ninetytarget[MAXPLAYERS + 1];
 
 float lastspeed[MAXPLAYERS + 1];
 float lastchangedspeed[MAXPLAYERS + 1];
@@ -41,16 +42,12 @@ public void OnPluginStart()
     RegConsoleCmd("speedtoggle", speedtoggle);
     RegConsoleCmd("vspeedtoggle", vspeedtoggle);
     RegConsoleCmd("targettoggle", targettoggle);
+    RegConsoleCmd("ninetytargettoggle", ninetytargettoggle);
 }
 
 Action chargetoggle(int client, int args)
 {
     toggle[client] = !toggle[client];
-    anglemeter[client] = toggle[client];
-    extra[client] = toggle[client];
-    speedometer[client] = toggle[client];
-    vspeedometer[client] = toggle[client];
-    target[client] = toggle[client];
     return Plugin_Continue;
 }
 
@@ -84,14 +81,22 @@ Action targettoggle(int client, int args)
     return Plugin_Continue;
 }
 
+Action ninetytargettoggle(int client, int args)
+{
+    ninetytarget[client] = !ninetytarget[client];
+    return Plugin_Continue;
+}
+
 public void OnClientPutInServer(int client)
 {
+    // Change these if you want toggles on or off by default
     toggle[client] = true;
     anglemeter[client] = false;
     extra[client] = false;
     speedometer[client] = true;
-    vspeedometer[client] = true
+    vspeedometer[client] = true;
     target[client] = true;
+    ninetytarget[client] = true;
 }
 
 int abs(int x)
@@ -139,11 +144,10 @@ public void OnGameFrame()
                 int angle = RoundFloat(difference); // Angle turned away from velocity, spans -180 to 180
 
                 GetEntPropVector(i, Prop_Data, "m_vecAbsVelocity", m_vecAbsVelocity);
+                float totalspeed = GetVectorLength(m_vecAbsVelocity);
+                float vspeed = m_vecAbsVelocity[2]
                 m_vecAbsVelocity[2] = 0.00;
                 float speed = GetVectorLength(m_vecAbsVelocity);
-
-                GetEntPropVector(i, Prop_Data, "m_vecAbsVelocity", m_vecAbsVelocity);
-                float vspeed = m_vecAbsVelocity[2]
 
                 // https://steamcommunity.com/sharedfiles/filedetails/?id=184184420
                 int optimal = RoundFloat(ArcCosine((750.00 - FloatAbs(0.0152 * 7500.00)) / FloatAbs(speed)) * (180 / M_PI)); // Spans ~30 to ~70
@@ -179,6 +183,8 @@ public void OnGameFrame()
                     int posminindex = RoundFloat(threesixtywraparound(threesixtydifference + minimum) * mappingratio)
                     int negoptimalindex = RoundFloat(threesixtywraparound(threesixtydifference - optimal) * mappingratio)
                     int posoptimalindex = RoundFloat(threesixtywraparound(threesixtydifference + optimal) * mappingratio)
+                    int negninetyindex = RoundFloat(threesixtywraparound(threesixtydifference - 90.0) * mappingratio)
+                    int posninetyindex = RoundFloat(threesixtywraparound(threesixtydifference + 90.0) * mappingratio)
                     if (angleindex >= 0 && angleindex < charstodisplay)
                         targetbuffer[angleindex] = 'v'
                     if (negminindex >= 0 && negminindex < charstodisplay)
@@ -189,9 +195,16 @@ public void OnGameFrame()
                         targetbuffer[negoptimalindex] = '|'
                     if (posoptimalindex >= 0 && posoptimalindex < charstodisplay)
                         targetbuffer[posoptimalindex] = '|'
+                    if (ninetytarget[i] && totalspeed >= 300)
+                    {
+                        if (negninetyindex >= 0 && negninetyindex < charstodisplay)
+                            targetbuffer[negninetyindex] = '='
+                        if (posninetyindex >= 0 && posninetyindex < charstodisplay)
+                            targetbuffer[posninetyindex] = '='
+                    }
                 }
 
-                ShowSyncHudText(i, sync, "%s%s%s%s", target[i] ? targetbuffer : "", speedometer[i] ? speedbuffer : "", vspeedometer[i] ? vspeedbuffer : "", anglemeter[i] ? anglebuffer : "", extra[i] ? extrabuffer : "");
+                ShowSyncHudText(i, sync, "%s%s%s%s%s", target[i] ? targetbuffer : "", speedometer[i] ? speedbuffer : "", vspeedometer[i] ? vspeedbuffer : "", anglemeter[i] ? anglebuffer : "", extra[i] ? extrabuffer : "");
 
                 if (speed - lastspeed[i] > 0.5 || lastspeed[i] - speed > 0.5)
                 {
