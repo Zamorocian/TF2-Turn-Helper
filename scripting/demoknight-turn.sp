@@ -26,6 +26,7 @@ bool toggle[MAXPLAYERS + 1];
 bool anglemeter[MAXPLAYERS + 1];
 bool extra[MAXPLAYERS + 1];
 bool speedometer[MAXPLAYERS + 1];
+bool vspeedometer[MAXPLAYERS + 1];
 bool target[MAXPLAYERS + 1];
 
 float lastspeed[MAXPLAYERS + 1];
@@ -38,6 +39,7 @@ public void OnPluginStart()
     RegConsoleCmd("angletoggle", angletoggle);
     RegConsoleCmd("extratoggle", extratoggle);
     RegConsoleCmd("speedtoggle", speedtoggle);
+    RegConsoleCmd("vspeedtoggle", vspeedtoggle);
     RegConsoleCmd("targettoggle", targettoggle);
 }
 
@@ -47,6 +49,7 @@ Action chargetoggle(int client, int args)
     anglemeter[client] = toggle[client];
     extra[client] = toggle[client];
     speedometer[client] = toggle[client];
+    vspeedometer[client] = toggle[client];
     target[client] = toggle[client];
     return Plugin_Continue;
 }
@@ -69,6 +72,12 @@ Action speedtoggle(int client, int args)
     return Plugin_Continue;
 }
 
+Action vspeedtoggle(int client, int args)
+{
+    vspeedometer[client] = !vspeedometer[client];
+    return Plugin_Continue;
+}
+
 Action targettoggle(int client, int args)
 {
     target[client] = !target[client];
@@ -81,6 +90,7 @@ public void OnClientPutInServer(int client)
     anglemeter[client] = false;
     extra[client] = false;
     speedometer[client] = true;
+    vspeedometer[client] = true
     target[client] = true;
 }
 
@@ -132,6 +142,9 @@ public void OnGameFrame()
                 m_vecAbsVelocity[2] = 0.00;
                 float speed = GetVectorLength(m_vecAbsVelocity);
 
+                GetEntPropVector(i, Prop_Data, "m_vecAbsVelocity", m_vecAbsVelocity);
+                float vspeed = m_vecAbsVelocity[2]
+
                 // https://steamcommunity.com/sharedfiles/filedetails/?id=184184420
                 int optimal = RoundFloat(ArcCosine((750.00 - FloatAbs(0.0152 * 7500.00)) / FloatAbs(speed)) * (180 / M_PI)); // Spans ~30 to ~70
                 int minimum = RoundFloat(ArcCosine(750.00 / FloatAbs(speed)) * (180 / M_PI)); // Spans ~0 to ~70
@@ -147,11 +160,13 @@ public void OnGameFrame()
                 char anglebuffer[256];
                 char extrabuffer[256];
                 char speedbuffer[256];
+                char vspeedbuffer[256];
                 char targetbuffer[256];
 
                 Format(anglebuffer, sizeof(anglebuffer), "\n%i", speed == 0 ? 0 : angle);
                 Format(extrabuffer, sizeof(extrabuffer), "\nmin: %i, optimal: %i", speed < 750 ? 0 : minimum, speed < 750 ? 0 : optimal);
-                Format(speedbuffer, sizeof(speedbuffer), "\n%i", RoundFloat(speed));
+                Format(speedbuffer, sizeof(speedbuffer), "\nh%i", RoundFloat(speed));
+                Format(vspeedbuffer, sizeof(vspeedbuffer), "\nv%i", RoundFloat(vspeed));
                 // Putting 135 spaces into it (hardcoded so change this too if you want to change the charstodisplay)
                 Format(targetbuffer, sizeof(targetbuffer), "                                                                                                                                       ");
                 int charstodisplay = 135
@@ -176,7 +191,7 @@ public void OnGameFrame()
                         targetbuffer[posoptimalindex] = '|'
                 }
 
-                ShowSyncHudText(i, sync, "%s%s%s%s", target[i] ? targetbuffer : "", speedometer[i] ? speedbuffer : "", anglemeter[i] ? anglebuffer : "", extra[i] ? extrabuffer : "");
+                ShowSyncHudText(i, sync, "%s%s%s%s", target[i] ? targetbuffer : "", speedometer[i] ? speedbuffer : "", vspeedometer[i] ? vspeedbuffer : "", anglemeter[i] ? anglebuffer : "", extra[i] ? extrabuffer : "");
 
                 if (speed - lastspeed[i] > 0.5 || lastspeed[i] - speed > 0.5)
                 {
