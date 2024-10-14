@@ -122,20 +122,20 @@ public void OnGameFrame()
         {
             if (toggle[i])
             {
-                float m_angAbsRotation[3];
+                float clientEyeAngles[3];
                 float m_vecAbsVelocity[3];
                 float angleVector[3];
 
-                GetEntPropVector(i, Prop_Data, "m_angAbsRotation", m_angAbsRotation);
+                GetClientEyeAngles(i, clientEyeAngles);
                 GetEntPropVector(i, Prop_Data, "m_vecAbsVelocity", m_vecAbsVelocity);
                 NormalizeVector(m_vecAbsVelocity, m_vecAbsVelocity);
                 m_vecAbsVelocity[2] = 0.00;
                 GetVectorAngles(m_vecAbsVelocity, angleVector);
-                if (m_angAbsRotation[1] < 0)
-                    m_angAbsRotation[1]  += 360.00;
+                if (clientEyeAngles[1] < 0)
+                    clientEyeAngles[1]  += 360.00;
             
                 // there's 
-                float difference = m_angAbsRotation[1] - angleVector[1];
+                float difference = clientEyeAngles[1] - angleVector[1];
                 if (difference <= -180.00)
                     difference += 360.00;
                 else if (difference >= 180.00)
