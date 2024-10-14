@@ -20,6 +20,8 @@ Zamoroc edits:
 | \| | The optimal angle from your velocity to gain speed |
 | = | A 90 degree angle from your velocity to show where you turn without gaining or losing speed |
 
+I've also fixed the angle lagging/rolling average by using GetClientEyeAngles instead of m_angAbsRotation.
+
 Example: [upward last to first trimp (tf2 tide turner)](https://youtu.be/fJPEFj5maX4)
 
 # How to get it to work
@@ -32,6 +34,3 @@ Compile the demoknight-turn.sp file into .smx (there's a compiler in sourcemod o
 After launching the server, it should appear in the Lan section of the server browser in-game.
 
 Commands are (just put them in the normal in-game console by themself, it may say not recognised but it's lying) : chargetoggle - all displays on/off, angletoggle - the angle from velocity value, extratoggle - the optimal/min values, speedtoggle - the horizontal speed value, targettoggle - the moving targets, ninetytargettoggle - the 90 degree targets.
-
-# Notes
-It seems to display the information slightly delayed (maybe ~50ms) from what's happening on your screen, for example, if it goes green that means you did well in the past. This is most apparent when you're trying to do a quick turn.
