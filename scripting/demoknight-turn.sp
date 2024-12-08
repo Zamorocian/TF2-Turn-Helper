@@ -30,6 +30,8 @@ bool vspeedometer[MAXPLAYERS + 1];
 bool target[MAXPLAYERS + 1];
 bool ninetytarget[MAXPLAYERS + 1];
 
+float lastanglevector[MAXPLAYERS + 1];
+
 float lastspeed[MAXPLAYERS + 1];
 float lastchangedspeed[MAXPLAYERS + 1];
 
@@ -99,11 +101,11 @@ public void OnClientPutInServer(int client)
     ninetytarget[client] = true;
 }
 
-int abs(int x)
-{
-    int mask = x >> 32 - 1;
-    return (x + mask) ^ mask;
-}
+//int abs(int x)
+//{
+//    int mask = x >> 32 - 1;
+//    return (x + mask) ^ mask;
+//}
 
 float threesixtywraparound(float difference)
 {
@@ -135,7 +137,8 @@ public void OnGameFrame()
                     clientEyeAngles[1]  += 360.00;
             
                 // there's 
-                float difference = clientEyeAngles[1] - angleVector[1];
+                float difference = clientEyeAngles[1] - lastanglevector[i];
+                lastanglevector[i] = angleVector[1];
                 if (difference <= -180.00)
                     difference += 360.00;
                 else if (difference >= 180.00)
@@ -150,16 +153,57 @@ public void OnGameFrame()
                 float speed = GetVectorLength(m_vecAbsVelocity);
 
                 // https://steamcommunity.com/sharedfiles/filedetails/?id=184184420
-                int optimal = RoundFloat(ArcCosine((750.00 - FloatAbs(0.0152 * 7500.00)) / FloatAbs(speed)) * (180 / M_PI)); // Spans ~30 to ~70
-                int minimum = RoundFloat(ArcCosine(750.00 / FloatAbs(speed)) * (180 / M_PI)); // Spans ~0 to ~70
-                if (!TF2_IsPlayerInCondition(i, TFCond_Charging) || abs(angle) > optimal + 20 || abs(angle) < minimum - 10 || (speed - lastspeed[i] < 10.00 && GetGameTime() - lastchangedspeed[i] >= 0.1))
-                    SetHudTextParams(-1.0, 0.48, 1.00, 255, 0, 0, 255, 0, 6.0, 0.0, 0.0);  // red
-                else if (abs(angle) < optimal - 10 || abs(angle) > optimal + 10)
-                    SetHudTextParams(-1.0, 0.48, 1.00, 127, 255, 0, 255, 0, 6.0, 0.0, 0.0); // yellow
-                else if (abs(angle) < optimal - 5 || abs(angle) > optimal + 5)
-                    SetHudTextParams(-1.0, 0.48, 1.00, 0, 255, 255, 255, 0, 6.0, 0.0, 0.0); // turquoise
+                float optimalf = ArcCosine((750.00 - FloatAbs(0.0152 * 7500.00)) / FloatAbs(speed)) * (180 / M_PI);
+                float minimumf = ArcCosine(750.00 / FloatAbs(speed)) * (180 / M_PI);
+                float minimumoptimalrange = optimalf - minimumf;
+                int optimal = RoundFloat(optimalf) // Spans ~30 to ~70
+                int minimum = RoundFloat(minimumf) // Spans ~0 to ~70
+                bool reducedaccel = vspeed > 0.01 && vspeed < 249.99;
+                float absdifference = difference < 0.00 ? -difference : difference;
+                
+                // Always show yellowy green for aiming forward while under 750 horizontal speed
+                if (TF2_IsPlayerInCondition(i, TFCond_Charging) && speed < 750.01 && absdifference <= 92.00)
+                {
+                    if (reducedaccel) 
+                         SetHudTextParams(-1.0, 0.48, 1.00, 92, 255, 64, 255, 0, 6.0, 0.0, 0.0); // white yellowy green
+                    else SetHudTextParams(-1.0, 0.48, 1.00, 32, 255, 0, 255, 0, 6.0, 0.0, 0.0); // yellowy green
+                }
+                else if (!TF2_IsPlayerInCondition(i, TFCond_Charging) || absdifference < minimumf || absdifference > 92.00 || speed - lastspeed[i] < 10.00 && GetGameTime() - lastchangedspeed[i] >= 0.1)
+                {
+                    if (reducedaccel) 
+                         SetHudTextParams(-1.0, 0.48, 1.00, 255, 64, 64, 255, 0, 6.0, 0.0, 0.0);  // white red
+                    else SetHudTextParams(-1.0, 0.48, 1.00, 255, 0, 0, 255, 0, 6.0, 0.0, 0.0);  // red
+                }
+                else if (absdifference < optimalf - 0.67 * minimumoptimalrange)
+                {
+                    if (reducedaccel) 
+                         SetHudTextParams(-1.0, 0.48, 1.00, 159, 255, 64, 255, 0, 6.0, 0.0, 0.0); // white yellow
+                    else SetHudTextParams(-1.0, 0.48, 1.00, 127, 255, 0, 255, 0, 6.0, 0.0, 0.0); // yellow
+                }
+                else if (absdifference < optimalf - 0.33 * minimumoptimalrange)
+                {
+                    if (reducedaccel) 
+                         SetHudTextParams(-1.0, 0.48, 1.00, 64, 255, 159, 255, 0, 6.0, 0.0, 0.0); // white turquoise
+                    else SetHudTextParams(-1.0, 0.48, 1.00, 0, 255, 127, 255, 0, 6.0, 0.0, 0.0); // turquoise
+                }
+                else if (absdifference < optimalf + 0.33 * minimumoptimalrange)
+                {
+                    if (reducedaccel) 
+                         SetHudTextParams(-1.0, 0.48, 1.00, 64, 255, 64, 255, 0, 6.0, 0.0, 0.0); // white green
+                    else SetHudTextParams(-1.0, 0.48, 1.00, 0, 255, 0, 255, 0, 6.0, 0.0, 0.0); // green
+                }
+                else if (absdifference < optimalf + 1.00 * minimumoptimalrange)
+                {
+                    if (reducedaccel) 
+                         SetHudTextParams(-1.0, 0.48, 1.00, 64, 159, 255, 255, 0, 6.0, 0.0, 0.0); // white blue
+                    else SetHudTextParams(-1.0, 0.48, 1.00, 0, 127, 255, 255, 0, 6.0, 0.0, 0.0); // blue
+                }
                 else
-                    SetHudTextParams(-1.0, 0.48, 1.00, 0, 255, 0, 255, 0, 6.0, 0.0, 0.0); // green
+                {
+                    if (reducedaccel) 
+                         SetHudTextParams(-1.0, 0.48, 1.00, 255, 64, 159, 255, 0, 6.0, 0.0, 0.0); // white purple
+                    else SetHudTextParams(-1.0, 0.48, 1.00, 255, 0, 127, 255, 0, 6.0, 0.0, 0.0); // purple
+                }
 
                 char anglebuffer[256];
                 char extrabuffer[256];
@@ -179,10 +223,10 @@ public void OnGameFrame()
                 if (speed > 0)
                 {
                     int angleindex = RoundFloat(threesixtydifference * mappingratio)
-                    int negminindex = RoundFloat(threesixtywraparound(threesixtydifference - minimum) * mappingratio)
-                    int posminindex = RoundFloat(threesixtywraparound(threesixtydifference + minimum) * mappingratio)
-                    int negoptimalindex = RoundFloat(threesixtywraparound(threesixtydifference - optimal) * mappingratio)
-                    int posoptimalindex = RoundFloat(threesixtywraparound(threesixtydifference + optimal) * mappingratio)
+                    int negminindex = RoundFloat(threesixtywraparound(threesixtydifference - minimumf) * mappingratio)
+                    int posminindex = RoundFloat(threesixtywraparound(threesixtydifference + minimumf) * mappingratio)
+                    int negoptimalindex = RoundFloat(threesixtywraparound(threesixtydifference - optimalf) * mappingratio)
+                    int posoptimalindex = RoundFloat(threesixtywraparound(threesixtydifference + optimalf) * mappingratio)
                     int negninetyindex = RoundFloat(threesixtywraparound(threesixtydifference - 90.0) * mappingratio)
                     int posninetyindex = RoundFloat(threesixtywraparound(threesixtydifference + 90.0) * mappingratio)
                     if (angleindex >= 0 && angleindex < charstodisplay)
