@@ -1,6 +1,7 @@
 # (TF2) Turn Helper
 This plugin shows whether you are turning enough to gradually increase your speed with the shields.
 
+Edit: I changed how the colours work, see the colours table in the Zamoroc edits section instead.
 | Colour  | Description |
 | ------------- | ------------- |
 | Red  | Not charging, you are +20 degrees further than the maximum angle, you are -20 degrees less than the minimum angle, or you are not gradually increasing in speed.  |
@@ -18,7 +19,19 @@ Zamoroc edits:
 | v | Your velocity  |
 | - | The minimum angle from your velocity to gain speed  |
 | \| | The optimal angle from your velocity to gain speed |
-| = | A 90 degree angle from your velocity to show where you turn without gaining or losing speed |
+| = | A 90 degree angle from your velocity to show (roughly) where you turn without gaining or losing speed |
+
+The colours are now slightly different:
+| Colour  | Description |
+| ------------- | ------------- |
+| White | Moving at 1-249hu/s upwards, giving you 0.25x acceleration |
+| Yellowy Green | At or below 750hu/s and not aiming backwards |
+| Red  | Not charging, you are below the minimum angle, you are over 90 degrees from your direction of travel, or you are not gradually increasing in speed.  |
+| Yellow | Within the bottom 33% of the minimum angle to optimal angle range |
+| Cyan  | Within 33% - 67% of the minimum angle to optimal angle range |
+| Green | Within the top 33% of the minimum angle to optimal angle range, or over the optimal angle by at most 33% of the minimum angle to optimal angle range |
+| Light Purple | Over the optimal angle by at most 100% of the minimum angle to optimal angle range |
+| Purple | Below 90 degrees from your direction of travel |
 
 I've also fixed the angle lagging/rolling average by using GetClientEyeAngles instead of m_angAbsRotation.
 
