@@ -137,13 +137,12 @@ public void OnGameFrame()
                     clientEyeAngles[1]  += 360.00;
             
                 // there's 
-                float difference = clientEyeAngles[1] - lastanglevector[i];
+                float difference = clientEyeAngles[1] - lastanglevector[i]; // Need to use the angle vector from the previous tick because GetClientEyeAngles gives info from the previous tick for some reason
                 lastanglevector[i] = angleVector[1];
                 if (difference <= -180.00)
                     difference += 360.00;
                 else if (difference >= 180.00)
                     difference -= 360.00;
-
                 int angle = RoundFloat(difference); // Angle turned away from velocity, spans -180 to 180
 
                 GetEntPropVector(i, Prop_Data, "m_vecAbsVelocity", m_vecAbsVelocity);
@@ -153,16 +152,26 @@ public void OnGameFrame()
                 float speed = GetVectorLength(m_vecAbsVelocity);
 
                 // https://steamcommunity.com/sharedfiles/filedetails/?id=184184420
-                float optimalf = ArcCosine((750.00 - FloatAbs(0.0152 * 7500.00)) / FloatAbs(speed)) * (180 / M_PI);
-                float minimumf = ArcCosine(750.00 / FloatAbs(speed)) * (180 / M_PI);
+                float limit = 750.00;
+                float accel = 7500.00;
+                float ticklength = 0.015;
+                // Checking for holding the skullcutter, which changes the limit and acceleration
+                new weapon = GetEntPropEnt(i, Prop_Send, "m_hActiveWeapon");
+                if (IsPlayerAlive(i) && GetEntProp(weapon, Prop_Send, "m_iItemDefinitionIndex") == 172) // Weapon is the Skullcutter
+                {
+                    limit = 637.50;
+                    accel = 6375.00;
+                }
+                float optimalf = ArcCosine((limit - FloatAbs(ticklength * accel)) / FloatAbs(speed)) * (180 / M_PI);
+                float minimumf = ArcCosine(limit / FloatAbs(speed)) * (180 / M_PI);
                 float minimumoptimalrange = optimalf - minimumf;
                 int optimal = RoundFloat(optimalf) // Spans ~30 to ~70
                 int minimum = RoundFloat(minimumf) // Spans ~0 to ~70
                 bool reducedaccel = vspeed > 0.01 && vspeed < 249.99;
-                float absdifference = difference < 0.00 ? -difference : difference;
+                float absdifference = FloatAbs(difference);
                 
-                // Always show yellowy green for aiming forward while under 750 horizontal speed
-                if (TF2_IsPlayerInCondition(i, TFCond_Charging) && speed < 750.01 && absdifference <= 92.00)
+                // Always show yellowy green while under the forward speed limit, and not aiming backwards
+                if (TF2_IsPlayerInCondition(i, TFCond_Charging) && speed < limit + 0.01 && absdifference <= 92.00)
                 {
                     if (reducedaccel) 
                          SetHudTextParams(-1.0, 0.48, 1.00, 92, 255, 64, 255, 0, 6.0, 0.0, 0.0); // white yellowy green
@@ -195,14 +204,14 @@ public void OnGameFrame()
                 else if (absdifference < optimalf + 1.00 * minimumoptimalrange)
                 {
                     if (reducedaccel) 
-                         SetHudTextParams(-1.0, 0.48, 1.00, 64, 159, 255, 255, 0, 6.0, 0.0, 0.0); // white blue
-                    else SetHudTextParams(-1.0, 0.48, 1.00, 0, 127, 255, 255, 0, 6.0, 0.0, 0.0); // blue
+                         SetHudTextParams(-1.0, 0.48, 1.00, 64, 64, 255, 255, 0, 6.0, 0.0, 0.0); // white blue
+                    else SetHudTextParams(-1.0, 0.48, 1.00, 0, 0, 255, 255, 0, 6.0, 0.0, 0.0); // blue
                 }
                 else
                 {
                     if (reducedaccel) 
                          SetHudTextParams(-1.0, 0.48, 1.00, 255, 64, 159, 255, 0, 6.0, 0.0, 0.0); // white purple
-                    else SetHudTextParams(-1.0, 0.48, 1.00, 255, 0, 127, 255, 0, 6.0, 0.0, 0.0); // purple
+                    else SetHudTextParams(-1.0, 0.48, 1.00, 255, 0, 125, 255, 0, 6.0, 0.0, 0.0); // purple
                 }
 
                 char anglebuffer[256];
@@ -212,7 +221,7 @@ public void OnGameFrame()
                 char targetbuffer[256];
 
                 Format(anglebuffer, sizeof(anglebuffer), "\n%i", speed == 0 ? 0 : angle);
-                Format(extrabuffer, sizeof(extrabuffer), "\nmin: %i, optimal: %i", speed < 750 ? 0 : minimum, speed < 750 ? 0 : optimal);
+                Format(extrabuffer, sizeof(extrabuffer), "\nmin: %i, optimal: %i", speed < limit ? 0 : minimum, speed < limit - accel * ticklength ? 0 : optimal);
                 Format(speedbuffer, sizeof(speedbuffer), "\nh%i", RoundFloat(speed));
                 Format(vspeedbuffer, sizeof(vspeedbuffer), "\nv%i", RoundFloat(vspeed));
                 // Putting 135 spaces into it (hardcoded so change this too if you want to change the charstodisplay)
