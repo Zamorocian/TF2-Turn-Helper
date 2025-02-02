@@ -19,23 +19,25 @@ Zamoroc edits:
 | v | Your velocity  |
 | - | The minimum angle from your velocity to gain speed  |
 | \| | The optimal angle from your velocity to gain speed |
-| = | A 90 degree angle from your velocity to show (roughly) where you turn without gaining or losing speed |
+| = | A 92 degree angle from your velocity to show (roughly) where you turn without gaining or losing speed |
 
 The colours are now slightly different:
 | Colour  | Description |
 | ------------- | ------------- |
 | White | Moving at 1-249hu/s upwards, giving you 0.25x acceleration |
-| Yellowy Green | At or below 750hu/s and not aiming backwards |
+| Yellowy Green | At or below 750hu/s (637.5hu/s for the Skullcutter) and not aiming backwards |
 | Red  | Not charging, you are below the minimum angle, you are over 90 degrees from your direction of travel, or you are not gradually increasing in speed.  |
 | Yellow | Within the bottom 33% of the minimum angle to optimal angle range |
 | Cyan  | Within 33% - 67% of the minimum angle to optimal angle range |
 | Green | Within the top 33% of the minimum angle to optimal angle range, or over the optimal angle by at most 33% of the minimum angle to optimal angle range |
-| Light Purple | Over the optimal angle by at most 100% of the minimum angle to optimal angle range |
-| Purple | Below 90 degrees from your direction of travel |
+| Blue | Over the optimal angle by at most 100% of the minimum angle to optimal angle range |
+| Purple | Below 92 degrees from your direction of travel |
 
-I've also fixed the angle lagging/rolling average by using GetClientEyeAngles instead of m_angAbsRotation.
+It automatically changes to give the correct optimal and minimum angles when you equip the Skullcutter.
 
-Example: [upward last to first trimp (tf2 tide turner)](https://youtu.be/fJPEFj5maX4)
+I've fixed the angle lagging/rolling average by using GetClientEyeAngles instead of m_angAbsRotation.
+
+Example (outdated but close enough): [upward last to first trimp (tf2 tide turner)](https://youtu.be/fJPEFj5maX4)
 
 # How to get it to work
 This is how I did it but there may be different ways, if I find a better way I'll put it here.
