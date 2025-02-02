@@ -19,7 +19,7 @@ Zamoroc edits:
 | v | Your velocity  |
 | - | The minimum angle from your velocity to gain speed  |
 | \| | The optimal angle from your velocity to gain speed |
-| = | A 92 degree angle from your velocity to show (roughly) where you turn without gaining or losing speed |
+| = | A 90 degree angle from your velocity to show (roughly) where you turn without gaining or losing speed |
 
 The colours are now slightly different:
 | Colour  | Description |
