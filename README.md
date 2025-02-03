@@ -26,7 +26,7 @@ The colours are now slightly different:
 | ------------- | ------------- |
 | White | Moving at 1-249hu/s upwards, giving you 0.25x acceleration |
 | Yellowy Green | At or below 750hu/s (637.5hu/s for the Skullcutter) and not aiming backwards |
-| Red  | Not charging, you are below the minimum angle, you are over 90 degrees from your direction of travel, or you are not gradually increasing in speed.  |
+| Red  | Not charging, you are below the minimum angle, you are over 92 degrees from your direction of travel, or you are not gradually increasing in speed.  |
 | Yellow | Within the bottom 33% of the minimum angle to optimal angle range |
 | Cyan  | Within 33% - 67% of the minimum angle to optimal angle range |
 | Green | Within the top 33% of the minimum angle to optimal angle range, or over the optimal angle by at most 33% of the minimum angle to optimal angle range |
