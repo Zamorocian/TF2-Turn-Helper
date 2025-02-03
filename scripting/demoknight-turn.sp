@@ -161,6 +161,12 @@ public void OnGameFrame()
                 {
                     limit = 637.50;
                     accel = 6375.00;
+                    int primaryweapon = GetPlayerWeaponSlot(i, 0); // 0 is the int which means primary weapon
+                    if (primaryweapon == -1) // Using booties or bootlegger (they don't count as a weapon so return as -1)
+                    {
+                        limit *= 1.1;
+                        accel *= 1.1;
+                    }
                 }
                 float optimalf = ArcCosine((limit - FloatAbs(ticklength * accel)) / FloatAbs(speed)) * (180 / M_PI);
                 float minimumf = ArcCosine(limit / FloatAbs(speed)) * (180 / M_PI);
